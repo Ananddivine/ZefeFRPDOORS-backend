@@ -1,4 +1,5 @@
 const express = require("express");
+const app = express();
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
@@ -6,14 +7,10 @@ const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
-const app = express();
-const port = 4000;
-
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use(bodyParser.json());
-app.use('/images', express.static(path.join(__dirname, 'upload/images')));
+app.use(bodyParser.json()); // Add this line to parse JSON request bodies
 
 // Connect to MongoDB
 mongoose.connect("mongodb+srv://ad91482948:ananddivine@cluster0.kni9rs9.mongodb.net/ZEFEFRPDOORS", {
@@ -22,6 +19,7 @@ mongoose.connect("mongodb+srv://ad91482948:ananddivine@cluster0.kni9rs9.mongodb.
 }).then(async () => {
   console.log("Connected to MongoDB");
 
+  // Drop the index if it exists
   try {
     await mongoose.connection.db.collection('users').dropIndex('image_1');
     console.log("Index 'image_1' dropped successfully");
@@ -33,12 +31,21 @@ mongoose.connect("mongodb+srv://ad91482948:ananddivine@cluster0.kni9rs9.mongodb.
     }
   }
 
+  // Start the server after dropping the index
   startServer();
 }).catch(err => {
   console.log("Error connecting to MongoDB:", err.message);
 });
 
 const startServer = () => {
+  const port = 4000;
+
+  // API creation
+  app.use('/images', express.static('upload/images'));
+  app.get("/", (req, res) => {
+    res.send("Express App is Running");
+  });
+
   // Image Storage Engine
   const Storage = multer.diskStorage({
     destination: './upload/images',
@@ -49,12 +56,7 @@ const startServer = () => {
 
   const upload = multer({ storage: Storage });
 
-  // API Endpoints
-  app.get("/", (req, res) => {
-    res.send("Express App is Running");
-  });
-
-  // Upload image
+  // Creating upload image
   app.post("/upload", upload.single('product'), (req, res) => {
     if (!req.file) {
       return res.status(400).json({
@@ -64,12 +66,12 @@ const startServer = () => {
     }
 
     res.json({
-      success: true,
-      Image_url: `https://zefefrpdoors-backend.onrender.com/images/${req.file.filename}`
+      success: 1,
+      Image_url: `http://localhost:${port}/images/${req.file.filename}`
     });
   });
 
-  // Product Schema
+  // Schema for creating product
   const Product = mongoose.model("Product", {
     id: {
       type: Number,
@@ -105,7 +107,6 @@ const startServer = () => {
     },
   });
 
-  // Add product
   app.post('/addproduct', async (req, res) => {
     try {
       let products = await Product.find({});
@@ -127,7 +128,9 @@ const startServer = () => {
         old_price: req.body.old_price,
       });
 
+      console.log(product);
       await product.save();
+      console.log("saved");
 
       res.json({
         success: true,
@@ -142,7 +145,7 @@ const startServer = () => {
     }
   });
 
-  // Remove product
+  // Creating API for deleting the product
   app.post('/removeproduct', async (req, res) => {
     try {
       const product = await Product.findOneAndDelete({ id: req.body.id });
@@ -154,6 +157,7 @@ const startServer = () => {
         return;
       }
 
+      console.log("Removed:", product);
       res.json({
         success: true,
         name: req.body.name,
@@ -167,21 +171,14 @@ const startServer = () => {
     }
   });
 
-  // Get all products
+  // Creating API for getting all products
   app.get('/allproducts', async (req, res) => {
-    try {
-      let products = await Product.find({});
-      res.send(products);
-    } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-      });
-    }
+    let products = await Product.find({});
+    console.log("All products fetched");
+    res.send(products);
   });
 
-  // User Schema
+  // Schema for creating user model
   const User = mongoose.model('User', {
     name: {
       type: String,
@@ -205,7 +202,7 @@ const startServer = () => {
     }
   });
 
-  // User signup
+  // Creating endpoint for the registration of users
   app.post('/signup', async (req, res) => {
     try {
       let check = await User.findOne({ email: req.body.email });
@@ -244,7 +241,6 @@ const startServer = () => {
     }
   });
 
-  // User login
   app.post('/login', async (req, res) => {
     try {
       let user = await User.findOne({ email: req.body.email });
@@ -262,7 +258,7 @@ const startServer = () => {
           res.json({ success: false, errors: "Wrong password" });
         }
       } else {
-        res.json({ success: false, errors: "Wrong email id" });
+        res.json({ success: false, errors: "Wrong email id " });
       }
     } catch (error) {
       console.error("Error during login:", error);
@@ -273,37 +269,23 @@ const startServer = () => {
     }
   });
 
-  // Get new collections
+  // Creating endpoint for newcollection data
   app.get('/newcollections', async (req, res) => {
-    try {
-      let products = await Product.find({});
-      let newcollection = products.slice(1).slice(-8);
-      res.send(newcollection);
-    } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-      });
-    }
+    let products = await Product.find({});
+    let newcollection = products.slice(1).slice(-8);
+    console.log("New collection fetched");
+    res.send(newcollection);
   });
 
-  // Get popular in shop
+  // Creating endpoint for newcollection data
   app.get('/populerinshop', async (req, res) => {
-    try {
-      let products = await Product.find({});
-      let populer_in_shop = products.slice(0, 4);
-      res.send(populer_in_shop);
-    } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-      });
-    }
+    let products = await Product.find({});
+    let populer_in_shop = products.slice(0, 4);
+    console.log("populerinshopfetched");
+    res.send(populer_in_shop);
   });
 
-  // Middleware to fetch user
+  // Creating Middleware to fetch user
   const fetchUser = async (req, res, next) => {
     const token = req.header('auth-token');
     if (!token) {
@@ -319,8 +301,9 @@ const startServer = () => {
     }
   };
 
-  // Add to cart
+  // Adding product to cart
   app.post('/addtocart', fetchUser, async (req, res) => {
+    console.log("Add", req.body.item);
     try {
       let userData = await User.findOne({ _id: req.user.id });
       if (!userData) {
@@ -338,16 +321,16 @@ const startServer = () => {
     }
   });
 
-  // Remove item from cart
+  // Decrease product quantity in cart
   app.post('/removecartitem', fetchUser, async (req, res) => {
+    console.log("Remove", req.body.item);
     try {
       let userData = await User.findOne({ _id: req.user.id });
       if (!userData) {
         return res.status(404).json({ success: false, message: "User not found" });
       }
-      userData.cartData[req.body.item] -= 1;
-      if (userData.cartData[req.body.item] < 0) {
-        userData.cartData[req.body.item] = 0;
+      if (userData.cartData[req.body.item] > 0) {
+        userData.cartData[req.body.item] -= 1;
       }
       await User.updateOne({ _id: req.user.id }, { $set: userData });
       res.json({ success: true });
@@ -360,20 +343,24 @@ const startServer = () => {
     }
   });
 
-  // Get cart items
-  app.post('/getcart', fetchUser, async (req, res) => {
-    try {
-      let userData = await User.findOne({ _id: req.user.id });
-      if (!userData) {
-        return res.status(404).json({ success: false, message: "User not found" });
-      }
-      res.json(userData.cartData);
-    } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+  // Fetch cart data
+  app.get('/fetchcart', fetchUser, async (req, res) => {
+    let userData = await User.findOne({ _id: req.user.id });
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
+
+    res.send(userData.cartData);
   });
-  
+
+
+// creating endpoin to get  cartData
+
+app.post('/getcart',fetchUser,async (req,res)=>{
+  console.log("GetCart");
+  let userData = await User.findOne({_id:req.user.id});
+  res.json(userData.cartData);
+})
 
   // Start the server
   app.listen(port, (error) => {
