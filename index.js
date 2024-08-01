@@ -67,7 +67,7 @@ const startServer = () => {
 
     res.json({
       success: 1,
-      Image_url: `http://localhost:${port}/images/${req.file.filename}`
+      Image_url: `https://zefefrpdoors-backend.onrender.com/images/${req.file.filename}`
     });
   });
 
