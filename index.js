@@ -65,7 +65,7 @@ const startServer = () => {
 
     res.json({
       success: true,
-      Image_url: `http://localhost:${port}/images/${req.file.filename}`
+      Image_url: `https://zefefrpdoors-backend.onrender.com/images/${req.file.filename}`
     });
   });
 
@@ -361,7 +361,7 @@ const startServer = () => {
   });
 
   // Get cart items
-  app.get('/getcart', fetchUser, async (req, res) => {
+  app.post('/getcart', fetchUser, async (req, res) => {
     try {
       let userData = await User.findOne({ _id: req.user.id });
       if (!userData) {
@@ -370,12 +370,10 @@ const startServer = () => {
       res.json(userData.cartData);
     } catch (error) {
       console.error("Error:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-      });
+      res.status(500).json({ success: false, message: "Internal Server Error" });
     }
   });
+  
 
   // Start the server
   app.listen(port, (error) => {
