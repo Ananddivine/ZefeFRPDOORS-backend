@@ -13,7 +13,7 @@ app.use(cors());
 app.use(bodyParser.json()); // Add this line to parse JSON request bodies
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect("mongodb+srv://ad91482948:ananddivine@cluster0.kni9rs9.mongodb.net/ZEFEFRPDOORS", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 }).then(async () => {
@@ -38,7 +38,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 });
 
 const startServer = () => {
-  const port = process.env.PORT || 4000;
+  const port = 4000;
 
   // API creation
   app.use('/images', express.static('upload/images'));
@@ -280,32 +280,40 @@ const startServer = () => {
   // Creating endpoint for newcollection data
   app.get('/populerinshop', async (req, res) => {
     let products = await Product.find({});
-    let populercollection = products.slice(-8).reverse();
-    console.log("Popular in shop fetched");
-    res.send(populercollection);
+    let populer_in_shop = products.slice(0, 4);
+    console.log("populerinshopfetched");
+    res.send(populer_in_shop);
   });
 
-  // Creating addtocart endpoint
-  app.post('/addtocart', async (req, res) => {
-    try {
-      let user = await User.findOne({ email: req.body.email });
-      if (user) {
-        let cartData = user.cartData || {};
-        cartData[req.body.id] += 1;
-
-        const update = await User.findByIdAndUpdate(user.id, { cartData }, { new: true });
-        res.json({
-          success: true,
-          updatedUser: update
-        });
-      } else {
-        res.status(404).json({
-          success: false,
-          message: "User not found"
-        });
+  // Creating Middleware to fetch user
+  const fetchUser = async (req, res, next) => {
+    const token = req.header('auth-token');
+    if (!token) {
+      res.status(401).send({ error: "Please authenticate using a valid token" });
+    } else {
+      try {
+        const data = jwt.verify(token, 'secret_ecom');
+        req.user = data.user;
+        next();
+      } catch (error) {
+        res.status(401).send({ error: "Please authenticate using a valid token" });
       }
+    }
+  };
+
+  // Adding product to cart
+  app.post('/addtocart', fetchUser, async (req, res) => {
+    console.log("Add", req.body.item);
+    try {
+      let userData = await User.findOne({ _id: req.user.id });
+      if (!userData) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      userData.cartData[req.body.item] += 1;
+      await User.updateOne({ _id: req.user.id }, { $set: userData });
+      res.json({ success: true });
     } catch (error) {
-      console.error("Error during add to cart:", error);
+      console.error("Error:", error);
       res.status(500).json({
         success: false,
         message: "Internal Server Error",
@@ -313,27 +321,21 @@ const startServer = () => {
     }
   });
 
-  // Creating removefromcart endpoint
-  app.post('/removecartitem', async (req, res) => {
+  // Decrease product quantity in cart
+  app.post('/removecartitem', fetchUser, async (req, res) => {
+    console.log("Remove", req.body.item);
     try {
-      let user = await User.findOne({ email: req.body.email });
-      if (user) {
-        let cartData = user.cartData || {};
-        cartData[req.body.id] -= 1;
-
-        const update = await User.findByIdAndUpdate(user.id, { cartData }, { new: true });
-        res.json({
-          success: true,
-          updatedUser: update
-        });
-      } else {
-        res.status(404).json({
-          success: false,
-          message: "User not found"
-        });
+      let userData = await User.findOne({ _id: req.user.id });
+      if (!userData) {
+        return res.status(404).json({ success: false, message: "User not found" });
       }
+      if (userData.cartData[req.body.item] > 0) {
+        userData.cartData[req.body.item] -= 1;
+      }
+      await User.updateOne({ _id: req.user.id }, { $set: userData });
+      res.json({ success: true });
     } catch (error) {
-      console.error("Error during remove from cart:", error);
+      console.error("Error:", error);
       res.status(500).json({
         success: false,
         message: "Internal Server Error",
@@ -341,60 +343,31 @@ const startServer = () => {
     }
   });
 
-  // Creating fetchcartdata endpoint
-  app.post('/fetchcart', async (req, res) => {
-    try {
-      let user = await User.findOne({ email: req.body.email });
-      if (user) {
-        let cartData = user.cartData;
-        res.json({
-          success: true,
-          cart: cartData,
-        });
-      } else {
-        res.status(404).json({
-          success: false,
-          message: "User not found"
-        });
-      }
-    } catch (error) {
-      console.error("Error during fetch cart:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-      });
+  // Fetch cart data
+  app.get('/fetchcart', fetchUser, async (req, res) => {
+    let userData = await User.findOne({ _id: req.user.id });
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
+
+    res.send(userData.cartData);
   });
 
-  // Creating getcart endpoint
-  app.post('/getcart', async (req, res) => {
-    try {
-      let user = await User.findOne({ email: req.body.email });
-      if (user) {
-        let cart = user.cartData;
-        let productIds = Object.keys(cart).map(id => parseInt(id));
-        let cartProducts = await Product.find({ id: { $in: productIds } });
 
-        res.json({
-          success: true,
-          cartProducts,
-        });
-      } else {
-        res.status(404).json({
-          success: false,
-          message: "User not found"
-        });
-      }
-    } catch (error) {
-      console.error("Error during get cart:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-      });
+// creating endpoin to get  cartData
+
+app.post('/getcart',fetchUser,async (req,res)=>{
+  console.log("GetCart");
+  let userData = await User.findOne({_id:req.user.id});
+  res.json(userData.cartData);
+})
+
+  // Start the server
+  app.listen(port, (error) => {
+    if (!error) {
+      console.log("Server Running on Port " + port);
+    } else {
+      console.log("Error: " + error);
     }
-  });
-
-  app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
   });
 };
