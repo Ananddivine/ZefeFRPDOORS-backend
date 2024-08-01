@@ -361,7 +361,7 @@ const startServer = () => {
   });
 
   // Get cart items
-  app.post('/getcart', async (req, res) =>  {
+  app.get('/getcart', fetchUser, async (req, res) => {
     try {
       let userData = await User.findOne({ _id: req.user.id });
       if (!userData) {
