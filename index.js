@@ -25,8 +25,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'auth-token']
 }));
-
-
 app.use(express.json());
 app.use(bodyParser.json());
 
@@ -56,7 +54,7 @@ mongoose.connect("mongodb+srv://ad91482948:ananddivine@cluster0.kni9rs9.mongodb.
 });
 
 const startServer = () => {
-  const port = 4000;
+const port = process.env.PORT || 4000;
 
   // API creation
   app.use('/images', express.static(path.join(__dirname, 'upload/images')));
