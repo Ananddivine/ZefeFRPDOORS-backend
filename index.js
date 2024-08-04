@@ -381,7 +381,7 @@ const startServer = () => {
 
 // creating endpoin to get  cartData
 
-app.get('/getCart', async (req, res) => {
+app.get('/getcart', async (req, res) => {
   try {
     // Assuming you fetch the user data here
     const userData = await userData(req); // Replace with actual method to get user data
