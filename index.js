@@ -384,8 +384,6 @@ app.post('/getcart',fetchUser,async (req,res)=>{
 });
 
 
-
-
 // Fetch user details endpoint
 app.get('/user-details', fetchUser, async (req, res) => {
   try {
