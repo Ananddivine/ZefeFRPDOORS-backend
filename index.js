@@ -9,8 +9,10 @@ const bodyParser = require("body-parser");
 
 // Middleware
 app.use(express.json());
-app.use(cors());
-app.use(bodyParser.json()); // Add this line to parse JSON request bodies
+app.use(cors({
+  origin: "https://ananddivine-zefe-frpdoors-frontend.vercel.app",
+}));
+app.use(bodyParser.json());
 
 // Connect to MongoDB
 mongoose.connect("mongodb+srv://ad91482948:ananddivine@cluster0.kni9rs9.mongodb.net/ZEFEFRPDOORS", {
