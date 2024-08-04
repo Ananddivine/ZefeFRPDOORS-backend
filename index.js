@@ -1,5 +1,4 @@
 const express = require("express");
-const app = express();
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
@@ -7,7 +6,9 @@ const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
+const app = express();
 
+// CORS configuration
 const allowedOrigins = [
   "https://ananddivine-zefe-frpdoors-frontend.vercel.app",
   "https://zefe-frpdoors-adminpanel.vercel.app"
@@ -15,7 +16,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -24,7 +25,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'auth-token']
 }));
-
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -84,7 +84,7 @@ const startServer = () => {
 
     res.json({
       success: 1,
-      Image_url: `https://zefefrpdoors-backend.onrender.com/images/${req.file.filename}`
+      Image_url:`https://zefefrpdoors-backend.onrender.com/images/${req.file.filename}`
     });
   });
 
