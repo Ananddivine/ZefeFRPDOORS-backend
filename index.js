@@ -5,13 +5,28 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+
 const app = express();
 
-
+// CORS configuration
+const allowedOrigins = [
+  "https://ananddivine-zefe-frpdoors-frontend.vercel.app",
+  "https://zefe-frpdoors-adminpanel.vercel.app"
+];
 
 app.use(cors({
-  origin: ['https://ananddivine-zefe-frpdoors-frontend.vercel.app', 'https://zefe-frpdoors-adminpanel.vercel.app']
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token']
 }));
+
+
 app.use(express.json());
 app.use(bodyParser.json());
 
@@ -44,7 +59,7 @@ const startServer = () => {
   const port = 4000;
 
   // API creation
-  app.use('/images', express.static('upload/images'));
+  app.use('/images', express.static(path.join(__dirname, 'upload/images')));
   app.get("/", (req, res) => {
     res.send("Express App is Running");
   });
