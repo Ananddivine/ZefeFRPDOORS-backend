@@ -7,24 +7,11 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const app = express();
 
-// CORS configuration
-const allowedOrigins = [
-  "https://ananddivine-zefe-frpdoors-frontend.vercel.app",
-  "https://zefe-frpdoors-adminpanel.vercel.app",
-];
+
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token']
+  origin: ['https://ananddivine-zefe-frpdoors-frontend.vercel.app', 'https://zefe-frpdoors-adminpanel.vercel.app']
 }));
-
 app.use(express.json());
 app.use(bodyParser.json());
 
