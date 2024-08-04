@@ -10,9 +10,9 @@ const app = express();
 
 // CORS configuration
 const allowedOrigins = [
-  "https://ananddivine-zefe-frpdoors-frontend.vercel.app",
-  "https://zefe-frpdoors-adminpanel.vercel.app"
-];
+  "https://zefe-frpdoors-adminpanel.vercel.app",
+  "https://ananddivine-zefe-frpdoors-frontend.vercel.app"
+  ];
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -22,9 +22,13 @@ app.use(cors({
       callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
+
+
 app.use(express.json());
 app.use(bodyParser.json());
 
@@ -54,10 +58,10 @@ mongoose.connect("mongodb+srv://ad91482948:ananddivine@cluster0.kni9rs9.mongodb.
 });
 
 const startServer = () => {
-const port = process.env.PORT || 4000;
+  const port = 4000;
 
   // API creation
-  app.use('/images', express.static(path.join(__dirname, 'upload/images')));
+  app.use('/images', express.static('upload/images'));
   app.get("/", (req, res) => {
     res.send("Express App is Running");
   });
@@ -382,6 +386,8 @@ app.post('/getcart',fetchUser,async (req,res)=>{
   let userData = await User.findOne({_id:req.user.id});
   res.json(userData.cartData);
 });
+
+
 
 
 // Fetch user details endpoint
