@@ -22,8 +22,9 @@ app.use(cors({
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token']
 }));
+
 
 app.use(express.json());
 app.use(bodyParser.json());
