@@ -5,11 +5,26 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-
 const app = express();
+
+// CORS configuration
+const allowedOrigins = [
+  "https://ananddivine-zefe-frpdoors-frontend.vercel.app",
+  "https://zefe-frpdoors-adminpanel.vercel.app",
+];
+
 app.use(cors({
-  origin: 'https://ananddivine-zefe-frpdoors-frontend.vercel.app' 
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token']
 }));
+
 app.use(express.json());
 app.use(bodyParser.json());
 
