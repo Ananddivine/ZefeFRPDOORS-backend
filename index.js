@@ -381,25 +381,11 @@ const startServer = () => {
 
 // creating endpoin to get  cartData
 
-app.get('/getcart', async (req, res) => {
-  try {
-    // Assuming you fetch the user data here
-    const userData = await userData(req); // Replace with actual method to get user data
-
-    if (!userData) {
-      return res.status(404).json({ error: 'User data not found' });
-    }
-
-    if (!userData.cartData) {
-      return res.status(404).json({ error: 'Cart data not found' });
-    }
-
-    res.json(userData.cartData);
-  } catch (err) {
-    console.error('Error fetching cart data:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+app.post('/getcart',fetchUser,async (req,res)=>{
+  console.log("GetCart");
+  let userData = await User.findOne({_id:req.user.id});
+  res.json(userData.cartData);
+})
 
 
 
