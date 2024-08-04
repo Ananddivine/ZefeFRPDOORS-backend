@@ -10,7 +10,7 @@ const bodyParser = require("body-parser");
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use(bodyParser.json()); 
+app.use(bodyParser.json()); // Add this line to parse JSON request bodies
 
 // Connect to MongoDB
 mongoose.connect("mongodb+srv://ad91482948:ananddivine@cluster0.kni9rs9.mongodb.net/ZEFEFRPDOORS", {
@@ -97,6 +97,10 @@ const startServer = () => {
       type: Number,
       required: true,
     },
+    description: {
+      type: String,
+      required: true,
+    },
     date: {
       type: Date,
       default: Date.now,
@@ -126,6 +130,7 @@ const startServer = () => {
         category: req.body.category,
         new_price: req.body.new_price,
         old_price: req.body.old_price,
+        description: req.body.description,
       });
 
       console.log(product);
@@ -360,7 +365,28 @@ app.post('/getcart',fetchUser,async (req,res)=>{
   console.log("GetCart");
   let userData = await User.findOne({_id:req.user.id});
   res.json(userData.cartData);
-})
+});
+
+
+
+
+// Fetch user details endpoint
+app.get('/user-details', fetchUser, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('name email'); // Fetch only name and email
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
+
+
+
 
   // Start the server
   app.listen(port, (error) => {
