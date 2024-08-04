@@ -13,9 +13,6 @@ const allowedOrigins = [
   "https://zefe-frpdoors-adminpanel.vercel.app"
 ];
 
-
-// Middleware
-app.use(express.json());
 app.use(cors({
   origin: (origin, callback) => {
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
@@ -23,8 +20,12 @@ app.use(cors({
     } else {
       callback(new Error("Not allowed by CORS"));
     }
-  }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+app.use(express.json());
 app.use(bodyParser.json());
 
 // Connect to MongoDB
